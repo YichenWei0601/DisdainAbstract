@@ -34,10 +34,26 @@ async function callKimiAPI(prompt) {
   }
 }
 
+// Function to validate if input is a legitimate abstract
+async function validateAbstract(abstract) {
+  const prompt = `判断以下文本是否是一个学术论文摘要。如果是，请回复"Yes"；如果不是，请回复"No"。只回复"Yes"或"No"，不要添加其他内容。
+
+文本：
+${abstract}`;
+  const response = await callKimiAPI(prompt);
+  return response.trim().toLowerCase() === 'yes';
+}
+
 // Language analysis endpoint
 app.post('/analyze-language', async (req, res) => {
   try {
     const { abstract } = req.body;
+    
+    // Validate if the input is a legitimate abstract
+    if (!(await validateAbstract(abstract))) {
+      return res.json({ error: "Feed Me Abstract and Nothing Else." });
+    }
+    
     const prompt = `请详细分析以下学术论文摘要中的语言使用情况，包括：
 
 1. 识别并列出所有复杂、浮夸或不必要的学术术语和行话
@@ -60,6 +76,12 @@ ${abstract}`;
 app.post('/reveal-concepts', async (req, res) => {
   try {
     const { abstract } = req.body;
+    
+    // Validate if the input is a legitimate abstract
+    if (!(await validateAbstract(abstract))) {
+      return res.json({ error: "Feed Me Abstract and Nothing Else." });
+    }
+    
     const prompt = `请深入分析以下学术论文摘要中的模型和方法名称，揭示它们背后的实际设计：
 
 1. 识别并列出所有看似高大上的模型或算法名称
@@ -82,6 +104,12 @@ ${abstract}`;
 app.post('/analyze-experiments', async (req, res) => {
   try {
     const { abstract } = req.body;
+    
+    // Validate if the input is a legitimate abstract
+    if (!(await validateAbstract(abstract))) {
+      return res.json({ error: "Feed Me Abstract and Nothing Else." });
+    }
+    
     const prompt = `请批判性地分析以下学术论文摘要中的实验结果描述：
 
 1. 检测并列出所有夸大性结果陈述（如"significantly outperform"、"achieved state-of-the-art"等）
@@ -105,6 +133,12 @@ ${abstract}`;
 app.post('/rewrite-sarcastically', async (req, res) => {
   try {
     const { abstract } = req.body;
+    
+    // Validate if the input is a legitimate abstract
+    if (!(await validateAbstract(abstract))) {
+      return res.json({ error: "Feed Me Abstract and Nothing Else." });
+    }
+    
     const prompt = `请用不屑的语气重写以下学术论文摘要，指出其中的复杂用词和夸大之处：\n\n${abstract}`;
     const rewrite = await callKimiAPI(prompt);
     res.json({ rewrite });
@@ -210,6 +244,11 @@ app.post('/go-crazy', async (req, res) => {
       abstract = extractAbstractFromText(paperText);
     }
     
+    // Validate if the input is a legitimate abstract
+    if (!(await validateAbstract(abstract))) {
+      return res.json({ error: "Feed Me Abstract and Nothing Else." });
+    }
+    
     // 限制摘要长度在1500词以内
     const wordCount = abstract.split(/\s+/).length;
     if (wordCount > 1500) {
@@ -257,6 +296,11 @@ app.post('/analyze', async (req, res) => {
       
       // Extract abstract from paper text
       abstract = extractAbstractFromText(paperText);
+    }
+    
+    // Validate if the input is a legitimate abstract
+    if (!(await validateAbstract(abstract))) {
+      return res.json({ error: "Feed Me Abstract and Nothing Else." });
     }
     
     // Read bias document
