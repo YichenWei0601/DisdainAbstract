@@ -1,0 +1,23 @@
+{
+  "name": "disdain-abstract",
+  "version": "1.0.0",
+  "description": "An application that analyzes academic abstracts with sarcasm",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "academic",
+    "analysis",
+    "sarcasm",
+    "llm"
+  ],
+  "author": "DisdainAbstract Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "express": "^5.1.0",
+    "pdf-parse": "^2.3.11"
+  }
+}

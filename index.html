@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DisdainAbstract</title>
+    <style>
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            font-family: 'Cutive Mono', monospace;
+            font-size: 2em;
+            color: #E63946;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 10px;
+            font-family: 'Space Mono', monospace;
+        }
+        .button-group {
+            margin: 15px 0;
+        }
+        button {
+            background-color: #E63946;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Space Mono', monospace;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #ff2e3f;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            min-height: 100px;
+            font-size: 16px;
+            line-height: 1.6;
+            border: 2px solid #E63946;
+            border-radius: 5px;
+        }
+        #output h1, #output h2, #output h3 {
+            color: #E63946;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        #output h1 {
+            font-size: 24px;
+        }
+        #output h2 {
+            font-size: 20px;
+        }
+        #output h3 {
+            font-size: 18px;
+        }
+        #output strong {
+            color: #FFA500;
+        }
+        #output em {
+            color: #E63946;
+        }
+        .highlight-exaggeration {
+            color: #E63946;
+        }
+        .highlight-complexity {
+            color: #FFD166;
+        }
+        .highlight-fluff {
+            color: #888;
+        }
+        /* 添加闪烁光标动画 */
+        .cursor {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        /* Loading动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <link rel="stylesheet" href="assets/css/jetbrains-mono-headings.css">
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <div class="title-line" style="display:block;">&gt; DisdainAbstract:</div>
+            <div class="subtitle-line" style="display:block; white-space:nowrap; margin-top:6px;">
+                <span class="static-word" style="font-weight:700;">'GroundBreaking'</span>
+                <span class="dynamic-word" id="changingWord" style="margin-left:8px;">Bullshit</span><span class="cursor">_</span>
+            </div>
+        </h1>
+        <p style="text-align: center; font-family: 'JetBrains Mono Local', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Segoe UI Mono', 'Roboto Mono', 'Courier New', monospace;">"Where pretentious research meets brutal honesty."</p>
+        <textarea id="abstractInput" placeholder="Paste your abstract here or enter arXiv URL..."></textarea>
+        <div class="button-group">
+            <button onclick="analyzeAbstract('Sarcastic')">Sarcastic</button>
+            <button onclick="analyzeAbstract('Angry')">Angry</button>
+            <button onclick="analyzeAbstract('Weary')">Weary</button>
+            <button onclick="showBiasInput()" style="background-color: #FF4500; color: #fff;">Add Your Bias</button>
+            <button onclick="goCrazy()" style="background-color: #FFA500; color: #000;">Go Crazy</button>
+        </div>
+        <div id="biasInput" style="display: none; margin-top: 20px;">
+            <textarea id="biasTextarea" placeholder="Enter your bias here..." style="width: 100%; height: 100px;"></textarea>
+            <button onclick="addBias()">Submit Bias</button>
+            <button onclick="hideBiasInput()">Cancel</button>
+        </div>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // 简单的Markdown解析函数
+        function parseMarkdown(text) {
+            // 处理粗体
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // 处理斜体
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // 处理标题
+            text = text.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+            text = text.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            // 处理列表
+            text = text.replace(/^\- (.*$)/gm, '<li>$1</li>');
+            text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            // 处理换行
+            text = text.replace(/\n/g, '<br>');
+            return text;
+        }
+
+        // 从analyzing.md中随机抽取一条文本
+        function getRandomAnalyzingText() {
+            const texts = [
+                'The reviewer is fighting a defence battle with AC in the meta-review, and a "rejection" is splattered all over the place.',
+                'The reviewer is dismantling the author\'s "contribution" like LEGO, throwing pieces out the window while conveniently closing the window.',
+                'The reviewer is turning the experimental curve into a meme, captioned: "This line is flatter than my life."',
+                'The reviewer just issued a "weak accept," and reviewer 2 immediately retaliated with 10 pages of supplementary objections.',
+                'The reviewer is live-streaming on Twitter, using a red pen to turn the paper PDF into "hellish drawings," with the comments flooded with "blood sacrifice."',
+                'The reviewer is treating the "related work" section as a crime scene, using a highlighter to circle all the "unquoted" fingerprints.',
+                'The reviewer is gently explaining that reviewer 3 has already summoned the dragon of "statistical significance" to breathe fire.',
+                'The reviewer is making paper airplanes out of the conclusion section, aiming for the trash can while shouting "reproducibility crash."',
+                'The reviewer is urging everyone to "calm down," but reviewer 1 crosses out "calm down" and changes it to "calibration down."',
+                'The reviewer is having a showdown with AC on the openreview page, and with every refresh, the confidence score drops by 0.1.',
+                'The reviewer is putting "novelty" under a microscope, only to find it\'s just last year\'s arxiv paper with a new skin, and promptly calls the cops.',
+                'The reviewer is treating the "ablation study" like a bomb disposal, cutting one wire and causing the entire table to go to zero.',
+                'The reviewer is just about to mediate, when reviewer 4 throws out a screenshot of "identity check": the author has self-cited 18 times using a pseudonym.',
+                'The reviewer is opening a room on clubhouse, titled: "The related work of this paper is messier than my ex."',
+                'The reviewer is screenshotting the "limitation" section to make wallpaper, reciting "we acknowledge" three times every morning.',
+                'The reviewer is urging everyone to "look at the big picture," but reviewer 2 retorts: the big picture is that TPCR only has 24 hours left, and I want to break it down into 24 parts.',
+                'The reviewer is printing "Appendix A" on a T-shirt, with "I proved it" on the front and "but not enough pages" on the back.',
+                'The reviewer is treating the "experimental setup" as an escape room, discovering that the GPU model doesn\'t match, and pulls the plug.',
+                'The reviewer is throwing out "borderline," and the three reviewers instantly merge into "Voltron" form, unified in their stance: borderline of disaster.',
+                'The reviewer is treating the "future work" section as a blank check, taking it to the bank for cashing, only to be returned with "insufficient novelty."'
+            ];
+            return texts[Math.floor(Math.random() * texts.length)];
+        }
+
+        async function analyzeAbstract(style = 'Sarcastic') {
+            const abstract = document.getElementById('abstractInput').value;
+            if (!abstract.trim()) {
+                document.getElementById('output').innerText = "Please enter an abstract.";
+                return;
+            }
+
+            // 显示加载动画和随机文本
+            const randomText = getRandomAnalyzingText();
+            document.getElementById('output').innerHTML = `<div class="loading"></div> ${randomText}`;
+
+            try {
+                // 调用后端API进行分析
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ abstract, style })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                // 解析Markdown并显示尖锐评价结果
+                const parsedContent = parseMarkdown(result.sarcasticRewrite);
+                document.getElementById('output').innerHTML = parsedContent;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('output').innerHTML = `Analysis failed: ${error.message}`;
+            }
+        }
+
+        // 显示偏见输入框
+        function showBiasInput() {
+            document.getElementById('biasInput').style.display = 'block';
+        }
+
+        // 隐藏偏见输入框
+        function hideBiasInput() {
+            document.getElementById('biasInput').style.display = 'none';
+            document.getElementById('biasTextarea').value = '';
+        }
+
+        // 添加用户偏见
+        async function addBias() {
+            const bias = document.getElementById('biasTextarea').value;
+            if (!bias.trim()) {
+                alert('Please enter your bias.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/add-bias', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ bias })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                alert(result.message || 'Bias added successfully!');
+                hideBiasInput();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to add bias: ' + error.message);
+            }
+        }
+
+        // Go Crazy功能
+        async function goCrazy() {
+            const abstract = document.getElementById('abstractInput').value;
+            if (!abstract.trim()) {
+                document.getElementById('output').innerText = "Please enter an abstract.";
+                return;
+            }
+
+            // 显示加载动画和随机文本
+            const randomText = getRandomAnalyzingText();
+            document.getElementById('output').innerHTML = `<div class="loading"></div> ${randomText}`;
+
+            try {
+                // 调用后端API进行疯狂改写
+                const response = await fetch('/go-crazy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ abstract })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                // 解析Markdown并显示改写结果
+                const parsedContent = parseMarkdown(result.rewrite);
+                document.getElementById('output').innerHTML = parsedContent;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('output').innerHTML = `Failed to go crazy: ${error.message}`;
+            }
+        }
+
+        // 打字机动效函数
+        document.addEventListener('DOMContentLoaded', function() {
+            const words = ['Bullshit', 'Garbage', 'Science-trash', 'Nonsense', 'Hogwash', 'Baloney', 'Poppycock', 'Codswallop'];
+            let currentIndex = 0;
+            const wordElement = document.getElementById('changingWord');
+            
+            function typeWord(word, callback) {
+                let i = 0;
+                wordElement.textContent = '';
+                const typing = setInterval(function() {
+                    if (i < word.length) {
+                        wordElement.textContent += word.charAt(i);
+                        i++;
+                    } else {
+                        clearInterval(typing);
+                        setTimeout(callback, 1000);
+                    }
+                }, 100);
+            }
+            
+            function deleteWord(callback) {
+                let word = wordElement.textContent;
+                const deleting = setInterval(function() {
+                    if (word.length > 0) {
+                        word = word.slice(0, -1);
+                        wordElement.textContent = word;
+                    } else {
+                        clearInterval(deleting);
+                        callback();
+                    }
+                }, 50);
+            }
+            
+            function cycleWords() {
+                typeWord(words[currentIndex], function() {
+                    deleteWord(function() {
+                        currentIndex = (currentIndex + 1) % words.length;
+                        cycleWords();
+                    });
+                });
+            }
+            
+            // 开始循环
+            cycleWords();
+        });
+    </script>
+
+    <script>
+        // 简单的Markdown解析函数
+        function parseMarkdown(text) {
+            // 处理粗体
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // 处理斜体
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // 处理标题
+            text = text.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+            text = text.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            // 处理列表
+            text = text.replace(/^\- (.*$)/gm, '<li>$1</li>');
+            text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            // 处理换行
+            text = text.replace(/\n/g, '<br>');
+            return text;
+        }
+    <\/script>
+</body>
+</html>

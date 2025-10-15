@@ -1,0 +1,23 @@
+/* JetBrains Mono for headings
+   This stylesheet expects local font files under ../fonts/JetBrainsMono/
+*/
+
+@font-face {
+  font-family: 'JetBrains Mono Local';
+  src: url('../fonts/JetBrainsMono/ttf/JetBrainsMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono Local';
+  src: url('../fonts/JetBrainsMono/ttf/JetBrainsMono-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Apply to headings (use high specificity to override inline or other CSS) */
+html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
+  font-family: 'JetBrains Mono Local', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Segoe UI Mono', 'Roboto Mono', 'Courier New', monospace !important;
+}
